@@ -8,8 +8,8 @@ $(document).ready(function() {
     let typeResults = '';
     let types = [];
 
-
-    // FETCH API to get DATA
+    /*
+    // FETCH API to get DATA (FETCH WITHOUT CACHE)
     $.get(_url, function(data) {
 
         // LOOPING DATA RESULTS
@@ -38,7 +38,69 @@ $(document).ready(function() {
         // Inject data into id html to display for browser
         $('#vechile_model').html("<option value='all'>all</option>" + typeResults);
     });
+    */
 
+
+    // FETCH API FROM NETWORK AND SERVE DATA FROM CACHE IF ALREADY CACHES
+    function renderPage(data) {
+
+        // LOOPING DATA RESULTS
+        $.each(data, function(key, items) {
+
+            let _type = items.type;
+
+            // fill variable dataResults
+            dataResults += "<div>"
+                            + "<h3>" + items.name + "</h3>"
+                            + "<p>" + _type + "</p>"
+                        "</div>";
+
+            
+            // find unique type for every data
+            if($.inArray(_type, types) == -1) {
+                types.push(_type)
+                typeResults += "<option key='"+ key +"' value='"+ _type +"'>" + _type + "</option>"
+            }
+        });
+
+
+        // Inject data into id html to display for browser
+        $('#vechile_name').html(dataResults);
+
+        // Inject data into id html to display for browser
+        $('#vechile_model').html("<option value='all'>all</option>" + typeResults);
+
+    }
+
+
+    // nilai false di set saat koneksi masih offline
+    let networkDataReceived = false
+
+    // setelah sudah online, maka fungsi fetch dijalankan || (fresh data from online or network fetch)
+    let networkDataUpdate = fetch(_url).then((response) => {
+        return response.json();
+    }).then((data) => {
+        // update value networkData menjadi true dan jalankan fungsi renderPage
+        networkDataReceived = true;
+        renderPage(data);
+    });
+    
+    // return data from cache
+    caches.match(_url).then((response) => {
+        // jika tidak ada cache, show error 
+        if(!response) throw Error('no data on cache');
+        // jika ada cache, pakai value dari cache
+        return response.json();
+    }).then((data) => {
+        // jika network masih belum terkoneksi. jalankan fungsi renderpage dengan data dari cache
+        if(!networkDataReceived) {
+            renderPage(data);
+            console.log('render data from cache');
+        }
+    }).catch(() => {
+        // set default untuk serve data dari network fetch
+        return networkDataUpdate;
+    })
 
     // FUNCTION FILTER and REFETCH 
     $("#vechile_model").on("change", function() {
