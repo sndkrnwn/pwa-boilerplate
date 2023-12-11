@@ -39,6 +39,8 @@ $(document).ready(function() {
         $('#vechile_model').html("<option value='all'>all</option>" + typeResults);
     });
 
+
+    // FUNCTION FILTER and REFETCH 
     $("#vechile_model").on("change", function() {
         // console.log($(this).val());
         updateVechile($(this).val());
@@ -70,6 +72,20 @@ $(document).ready(function() {
     
             // Inject data into id html to display for browser
             $('#vechile_name').html(filterResults);
+        });
+    }
+
+
+    // PWA 
+    // Check if the browser supports service workers
+    if ('serviceWorker' in navigator) {
+        // Register the service worker
+        navigator.serviceWorker.register('./serviceWorker.js')
+        .then((registration) => {
+            console.log('Service Worker registered with scope:', registration.scope);
+        })
+        .catch((error) => {
+            console.error('Service Worker registration failed:', error);
         });
     }
 
